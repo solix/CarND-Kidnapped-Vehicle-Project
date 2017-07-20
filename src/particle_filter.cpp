@@ -25,6 +25,41 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	// Add random Gaussian noise to each particle.
 	// NOTE: Consult particle_filter.h for more information about this method (and others in this file).
 
+	default_random_engine gen;
+	double std_x, std_y, std_psi; // Standard deviations for x, y, and psi
+
+	// Set standard deviations for x, y, and psi.
+	 num_particles = 100;
+	 std_x = 2;
+	 std_y = 2;
+	 std_psi = 0.05;
+
+	 	
+	// normal distributions for x, y and psi
+	normal_distribution<double> dist_x(x, std[0]);
+	normal_distribution<double> dist_y(y, std[1]);
+	normal_distribution<double> dist_psi(theta, std[2]);
+
+
+	for (int i = 0; i < num_particles; ++i) {
+		double sample_x, sample_y, sample_psi;
+		
+		//Sample  and from these normal distrubtions like this: 
+		Particle p;
+		p.id =1;
+		p.x = dist_x(gen);
+		p.y = dist_y(gen);
+		p.theta = dist_psi(gen);
+		p.weight = 1;
+		particles.push_back(p);
+		weights.push_back(1);
+		// where "gen" is the random engine initialized earlier .
+		// cout<<particles[i]>>endl;
+
+	}
+		is_initialized = true;
+
+
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate) {
@@ -32,8 +67,59 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	// NOTE: When adding noise you may find std::normal_distribution and std::default_random_engine useful.
 	//  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
+	default_random_engine gen;
+
+	for(int i = 0; i < num_particles; i++){
+		
+		//initialize new variables for new state t	
+		double x_f ;
+		double y_f ;
+		double yaw_rate_f ;
+
+		//calculate new distance according to formula given in the literature
+
+		if(yaw_rate == 0){
+
+			x_f = 	particles[i].x + velocity*delta_t*cos(particles[i].theta);
+			y_f =  particles[i].y + velocity*delta_t*sin(particles[i].theta);
+			yaw_rate_f = particles[i].theta;	
+
+		}else{
+
+			x_f = 	particles[i].x + velocity/yaw_rate*(sin(particles[i].theta+yaw_rate*delta_t)-sin(particles[i].theta));
+			y_f =  particles[i].y + velocity/yaw_rate*(cos(particles[i].theta) - cos(particles[i].theta+yaw_rate*delta_t));
+			yaw_rate_f = particles[i].theta + yaw_rate*delta_t;	
+
+		}
+
+
+		// normal distributions for x, y and psi
+	normal_distribution<double> dist_x_f(x_f, std_pos[0]);
+	normal_distribution<double> dist_y_f(y_f, std_pos[1]);
+	normal_distribution<double> dist_yawrate_f(yaw_rate_f, std_pos[2]);
+
+	particles[i].x = dist_x_f(gen);
+	particles[i].y = dist_y_f(gen);
+	particles[i].theta = dist_yawrate_f(gen);
+
+
+
+
+	}
+
+
+
+
 
 }
+
+
+/*
+We will first need to transform the car's measurements from its local car coordinate system to the map's
+ coordinate system. Next each measurement will need to be associated with a landmark identifier, for doing this 
+ part we will simply take the closest landmark to each transformed observation. Finally we will then have everything 
+ we need to calculate the particles weight value.
+*/
 
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
 	// TODO: Find the predicted measurement that is closest to each observed measurement and assign the 
@@ -55,12 +141,31 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//   and the following is a good resource for the actual equation to implement (look at equation 
 	//   3.33
 	//   http://planning.cs.uiuc.edu/node99.html
+
+	// for(int p = 0;i < num_particles; i++){
+	// 	for(int o = 0; o< observations.length; i++){
+	// 		if(associations=0){
+	// 			// double meas_x = trans_obs
+	// 		}
+	// 	}
+	// }
+
 }
 
 void ParticleFilter::resample() {
-	// TODO: Resample particles with replacement with probability proportional to their weight. 
+	// Resample particles with replacement with probability proportional to their weight. 
 	// NOTE: You may find std::discrete_distribution helpful here.
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
+	default_random_engine gen;
+	discrete_distribution<int> dst_weights(weights.begin(),weights.end());
+
+	vector<Particle> particles_resampled;
+
+	for(int i = 0; i < num_particles; ++i){
+
+		particles_resampled.push_back(particles[dst_weights(gen)]);
+	}
+
 
 }
 
