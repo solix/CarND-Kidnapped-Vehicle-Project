@@ -253,7 +253,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		for(int t = 0; t < obs_transform2d.size(); t++){	
 		   LandmarkObs obs = obs_transform2d[t];
 		   LandmarkObs predicted_landmark = predicted[obs.id];
-		   associations.push_back(obs.id);
+		   associations.push_back(predicted_landmark.id);
 		   sense_x.push_back(predicted_landmark.x);
 		   sense_y.push_back(predicted_landmark.y);
 		   double weight = Multivariate_Gaussian_Probability(obs.x,obs.y,predicted_landmark.x,predicted_landmark.y,std_landmark[0],std_landmark[1]);
