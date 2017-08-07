@@ -29,7 +29,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	double std_x, std_y, std_psi; // Standard deviations for x, y, and psi
 
 	// Set standard deviations for x, y, and psi.
-	 num_particles = 100;
+	 num_particles = 50;
 	
 
 	 	
